@@ -1,0 +1,140 @@
+MemoryOS Project Transfer Documentation
+Project Status & Achievements
+Current State: MemoryOS is a fully functional AI-powered personal knowledge management system with complete MVP features working on Supabase PostgreSQL database.
+
+What's Been Built:
+
+✅ Complete full-stack TypeScript application (React + Node.js + Express)
+✅ Supabase PostgreSQL database with vector storage for AI embeddings
+✅ AI integration via OpenRouter API (GPT-4o for chat, embeddings for search)
+✅ Semantic search with vector similarity matching
+✅ Chat interface with memory context and citations
+✅ CRUD operations for memories with automatic categorization
+✅ Modern UI with Shadcn/ui components and Tailwind CSS
+✅ Mobile-responsive design with clean, minimal interface
+✅ Database schema with enhanced fields (priority, status, source, linkedMemories)
+Recent Enhancements:
+
+Enhanced database schema with priority levels, status tracking, source attribution
+Fixed chat scrolling issues to keep header navigation visible
+Optimized for free-tier compatibility (no Replit paid features)
+Successfully migrated from Replit database to external Supabase PostgreSQL
+Technical Architecture
+Database (Supabase PostgreSQL):
+
+Connection String: postgresql://postgres.ucmclshrcpmylvsphzlx:howtotrainyourpetdragon123987*@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+Tables:
+- users (id, email, firstName, lastName, profileImageUrl, timestamps)
+- memories (id, userId, title, content, type, tags[], embedding, priority, status, source, linkedMemories[], summary, timestamps)  
+- chat_sessions (id, userId, messages[], createdAt)
+- searches (id, userId, query, results[], createdAt)
+- sessions (sid, sess, expire) # for authentication
+Technology Stack:
+
+Frontend: React 18 + TypeScript + Vite + Shadcn/ui + Tailwind CSS
+Backend: Node.js + Express + Drizzle ORM + TypeScript
+Database: Supabase PostgreSQL with vector support
+AI: OpenRouter API (cost-effective alternative to OpenAI)
+State Management: TanStack Query for server state
+Routing: Wouter (lightweight)
+Forms: React Hook Form + Zod validation
+Environment Setup for New Replit
+1. Required Environment Variables:
+
+DATABASE_URL=postgresql://postgres.ucmclshrcpmylvsphzlx:howtotrainyourpetdragon123987*@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+OPENROUTER_API_KEY=your-openrouter-api-key-here
+2. Package Dependencies (package.json already configured):
+
+npm install  # All dependencies already in package.json
+npm run db:push  # Sync database schema to Supabase
+npm run dev  # Start development server
+3. File Structure:
+
+├── client/src/
+│   ├── components/ui/        # Shadcn components
+│   ├── components/          # Feature components (chat, memory management)
+│   ├── hooks/               # useAuth, useToast, etc.
+│   ├── lib/                 # Utils, query client
+│   ├── pages/               # Home, landing, not-found
+│   └── App.tsx              # Root with routing
+├── server/
+│   ├── services/openai.ts   # AI integration
+│   ├── routes.ts            # API endpoints
+│   ├── storage.ts           # Database operations
+│   ├── db.ts                # Database connection
+│   └── index.ts             # Server entry
+├── shared/schema.ts         # Database & validation schemas
+└── Configuration files (vite, tailwind, drizzle, etc.)
+Core Functionality Working
+Memory Management:
+
+Create, read, update, delete memories
+Automatic AI categorization and keyword extraction
+Vector embedding generation for semantic search
+Support for ideas, notes, learnings, tasks with priority/status
+AI Features:
+
+Semantic search across all memories using vector similarity
+Chat interface that references relevant memories in responses
+Automatic keyword extraction and content summarization
+Contextual AI responses with memory citations
+User Interface:
+
+Dual-view layout: Chat interface + Memory list
+Modern, clean design with proper mobile responsiveness
+Advanced filtering by type, priority, status, date
+Modal forms for memory creation/editing
+Real-time updates with optimistic UI
+Current Challenges & Next Development Phase
+Immediate Priorities:
+
+Export/Import Functionality - User wants to download project files for local development
+Custom Domain Deployment - Deploy to atharvasingh.com/memoryos for free
+Performance Optimizations - Implement advanced filtering, bulk operations
+Enhanced AI Features - Better memory linking, relationship detection
+Known Issues to Address:
+
+LSP diagnostic in server/services/openai.ts (minor typing issue)
+Need to add bulk memory operations (select multiple, batch delete/archive)
+Memory relationship visualization not yet implemented
+Advanced analytics dashboard pending
+Next Stage Development Tasks:
+
+Frontend Enhancements (follow the detailed frontend instructions provided)
+Memory Relationship Mapping - Visual network graph of connected memories
+Advanced Search - Filters, sorting, pagination for large datasets
+Export Features - JSON, CSV, Markdown export options
+Deployment Pipeline - Set up for Vercel/Railway deployment
+Migration Instructions for New Replit
+Step 1: Project Setup
+
+# Import the project files (Git clone or ZIP upload)
+# Navigate to project directory
+npm install
+Step 2: Database Connection
+
+# Add environment variables in Replit Secrets:
+DATABASE_URL=postgresql://postgres.ucmclshrcpmylvsphzlx:howtotrainyourpetdragon123987*@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+OPENROUTER_API_KEY=your-api-key
+# Sync database schema
+npm run db:push
+Step 3: Verification
+
+# Start development server
+npm run dev
+# Test endpoints:
+# GET /api/auth/user (should return demo user)
+# GET /api/memories (should return existing memories)
+# GET /api/stats (should show memory counts)
+Step 4: Continue Development
+
+All existing memories and data preserved in Supabase
+Demo authentication already working (easy to replace with real auth)
+Ready for frontend enhancements and deployment preparation
+User Context & Preferences
+Communication Style: Simple, everyday language (non-technical user)
+Priority: Functionality over aesthetics, clean minimal interface
+Constraints: Free-tier only, no paid platform dependencies
+Goal: Personal knowledge management system that works across platforms
+Deployment Target: Custom subdomain (atharvasingh.com/memoryos)
+The project is production-ready for personal use and ready for the next development phase focusing on enhanced frontend features and deployment.
