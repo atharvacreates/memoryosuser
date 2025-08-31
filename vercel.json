@@ -21,8 +21,6 @@
     }
   },
   "env": {
-    "NODE_ENV": "production",
-    "SUPABASE_DATABASE_URL": "@supabase_database_url",
-    "OPENROUTER_API_KEY": "@openrouter_api_key"
+    "NODE_ENV": "production"
   }
 }
