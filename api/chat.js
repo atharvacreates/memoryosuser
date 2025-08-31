@@ -1,4 +1,29 @@
-// Standalone chat API for Vercel deployment
+// Production chat API with OpenRouter AI integration
+import OpenAI from 'openai';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { eq } from 'drizzle-orm';
+import * as schema from '../../shared/schema.js';
+
+// Initialize OpenAI client for OpenRouter
+const openai = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+  defaultHeaders: {
+    "HTTP-Referer": "https://memoryos.vercel.app",
+    "X-Title": "MemoryOS",
+  }
+});
+
+// Initialize database connection
+const databaseUrl = process.env.SUPABASE_DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error("SUPABASE_DATABASE_URL must be set for production deployment");
+}
+
+const client = postgres(databaseUrl);
+const db = drizzle(client, { schema });
+
 export default async function handler(req, res) {
   console.log(`[CHAT API] ${req.method} /api/chat called`);
   console.log(`[CHAT API] Request body:`, req.body);
@@ -33,17 +58,82 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Last message must be from user" });
     }
 
-    // For now, return a simple response - we'll implement AI later
-    const response = `Hello! I received your message: "${lastMessage.content}". This is a test response from the chat API. In the full version, I would use AI to provide intelligent responses based on your memories.`;
+    // Search for relevant memories based on the user's question
+    console.log(`[CHAT API] Searching for relevant memories`);
+    const memories = await db.select().from(schema.memories)
+      .where(eq(schema.memories.userId, "shared-user"))
+      .limit(10);
+
+    // Build context from relevant memories
+    const context = memories.length > 0
+      ? memories.map(memory => 
+          `[${memory.type.toUpperCase()}] ${memory.title}: ${memory.content}${
+            memory.tags && memory.tags.length > 0 ? ` (Tags: ${memory.tags.join(', ')})` : ''
+          }`
+        ).join('\n\n')
+      : '';
+
+    console.log(`[CHAT API] Found ${memories.length} memories for context`);
+
+    // Generate AI response using OpenRouter
+    const systemMessage = context
+      ? `You are an AI assistant for MemoryOS, a personal knowledge management system. You help users find and organize their stored memories, thoughts, ideas, and learnings. 
+
+IMPORTANT: You can ONLY use information from the user's stored memories below. DO NOT use any external knowledge or make up information.
+
+User's stored memories:
+${context}
+
+CRITICAL RULES:
+- If memories are provided, ONLY respond based on those memories
+- If NO memories are provided, you can provide general information but clearly state it's not from personal memories
+- DO NOT hallucinate or make up information
+- DO NOT copy the raw memory format (no [LEARNING], [NOTE], etc. tags)
+- DO NOT include the memory tags in your response
+- Give natural, conversational responses
+- Reference the memory title naturally in conversation
+- Be helpful and conversational
+
+RESPONSE FORMAT:
+- If memories exist: Give a natural response based on the memories
+- If no memories: Provide helpful general information and suggest creating a memory
+- Always encourage memory creation when appropriate
+- Keep it friendly and helpful`
+      : "You are an AI assistant for MemoryOS, a personal knowledge management system. You help users find and organize their stored memories, thoughts, ideas, and learnings. Since no relevant memories were found for this query, I can provide general information and help you create a memory about this topic. Always encourage users to save important information as memories.";
+
+    console.log(`[CHAT API] Generating AI response with OpenRouter`);
+    const aiResponse = await openai.chat.completions.create({
+      model: "openai/gpt-4o",
+      messages: [
+        { role: "system", content: systemMessage },
+        ...req.body.messages.slice(-2).map(msg => ({
+          role: msg.role as "user" | "assistant" | "system",
+          content: msg.content
+        })),
+      ],
+      max_tokens: 300,
+      temperature: 0.7,
+    });
+
+    const response = aiResponse.choices[0].message.content || "I apologize, but I couldn't generate a response.";
     
-    console.log(`[CHAT API] Chat response generated successfully`);
+    console.log(`[CHAT API] AI response generated successfully`);
     res.json({ 
       message: response,
-      relevantMemories: [],
+      relevantMemories: memories.slice(0, 3), // Return top 3 relevant memories
       success: true
     });
   } catch (error) {
     console.error("Error in chat:", error);
-    res.status(500).json({ error: "Failed to process chat message" });
+    
+    // If it's an API credit error, provide a helpful message
+    if (error && typeof error === 'object' && 'code' in error && error.code === 402) {
+      return res.status(500).json({ 
+        error: "I'm currently experiencing high demand and my API credits are running low. I can still help you search through your memories and provide basic assistance. For full AI responses, you may need to upgrade your OpenRouter account or try again later.",
+        success: false
+      });
+    }
+    
+    res.status(500).json({ error: "Failed to process chat message", success: false });
   }
 }
