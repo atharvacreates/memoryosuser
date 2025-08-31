@@ -1,11 +1,11 @@
 # 🚀 Vercel Deployment Guide for MemoryOS
 
-This guide will help you deploy MemoryOS to Vercel with the exact same functionality as your localhost setup.
+This guide will help you deploy MemoryOS to Vercel with full functionality including the frontend, API routes, and database integration.
 
 ## 📋 Prerequisites
 
 1. **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
-2. **GitHub Repository**: Your code should be on GitHub (already done)
+2. **GitHub Repository**: Your code should be on GitHub
 3. **Supabase Database**: Your database should be set up and running
 4. **OpenRouter API Key**: Your AI API key should be active
 
@@ -13,7 +13,7 @@ This guide will help you deploy MemoryOS to Vercel with the exact same functiona
 
 1. Go to [vercel.com](https://vercel.com) and sign in
 2. Click **"New Project"**
-3. Import your GitHub repository: `https://github.com/atharvacreates/memoryosuser.git`
+3. Import your GitHub repository
 4. Click **"Import"**
 
 ## ⚙️ Step 2: Configure Environment Variables
@@ -50,9 +50,10 @@ This guide will help you deploy MemoryOS to Vercel with the exact same functiona
 Vercel should automatically detect the settings from `vercel.json`, but verify:
 
 - **Framework Preset**: Vite
-- **Build Command**: `npm run build`
+- **Build Command**: `npm run vercel-build`
 - **Output Directory**: `dist`
 - **Install Command**: `npm install`
+- **Node.js Version**: 18.x
 
 ## 🚀 Step 4: Deploy
 
@@ -77,21 +78,25 @@ After deployment, test these features:
 1. **Build Fails**
    - Check that all dependencies are in `package.json`
    - Verify Node.js version (18.x recommended)
+   - Check build logs for specific errors
 
 2. **API Errors**
    - Verify environment variables are set correctly
    - Check Supabase connection string
    - Ensure OpenRouter API key is valid
+   - Check Vercel function logs
 
 3. **Database Connection Issues**
    - Verify Supabase database is running
    - Check database URL format
    - Ensure database tables exist
+   - Check if IP restrictions are blocking Vercel
 
 4. **AI Not Working**
    - Check OpenRouter API key
    - Verify API credits are available
    - Check API rate limits
+   - Test API key locally first
 
 ### **Debug Steps:**
 
@@ -108,6 +113,11 @@ After deployment, test these features:
 3. **Database Migration**:
    - Run `npm run db:push` locally to ensure schema is up to date
    - Verify all tables exist in Supabase
+
+4. **Test API Endpoints Individually**:
+   - Test each API route separately
+   - Check CORS headers
+   - Verify request/response formats
 
 ## 🔄 Step 6: Continuous Deployment
 
@@ -145,6 +155,14 @@ If you encounter issues:
 2. Verify all environment variables
 3. Test API endpoints individually
 4. Check Supabase dashboard for database issues
+5. Test locally first to isolate problems
+
+## 🚨 Important Notes
+
+- **User ID**: All API routes now use "shared-user" for consistency
+- **CORS**: All API routes include proper CORS headers
+- **Error Handling**: Comprehensive error handling in all endpoints
+- **Logging**: Detailed logging for debugging
 
 ---
 

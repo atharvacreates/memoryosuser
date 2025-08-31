@@ -18,9 +18,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const userId = "demo-user";
+    const userId = "shared-user";
     const memories = await storage.getMemoriesByUserId(userId);
-    
+
     const stats = {
       total: memories.length,
       ideas: memories.filter(m => m.type === 'idea').length,

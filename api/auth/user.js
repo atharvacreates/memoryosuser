@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const user = await storage.getUser("demo-user");
+    const user = await storage.getUser("shared-user");
     res.json(user);
   } catch (error) {
     console.error("Error fetching user:", error);

@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.query;
-  const userId = "demo-user";
+  const userId = "shared-user";
 
   if (req.method === 'PUT') {
     try {
@@ -25,10 +25,10 @@ export default async function handler(req, res) {
       }
 
       const memoryData = result.data;
-      
+
       // Generate new embedding for updated content
       const embedding = await generateEmbedding(`${memoryData.title} ${memoryData.content}`);
-      
+
       // Generate AI-powered tags if none provided
       if (!memoryData.tags || memoryData.tags.length === 0) {
         memoryData.tags = await generateRelevantTags(memoryData.content, memoryData.title, memoryData.type);
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   } else if (req.method === 'DELETE') {
     try {
       const deleted = await storage.deleteMemory(id, userId);
-      
+
       if (!deleted) {
         return res.status(404).json({ error: "Memory not found" });
       }

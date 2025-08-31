@@ -34,20 +34,19 @@ export default async function handler(req, res) {
 
     // Search for relevant memories using enhanced search
     const queryEmbedding = await generateEmbedding(lastMessage.content);
-    const relevantMemories = await storage.searchMemoriesByEmbedding("demo-user", queryEmbedding, 5, lastMessage.content);
-    
+    const relevantMemories = await storage.searchMemoriesByEmbedding("shared-user", queryEmbedding, 5, lastMessage.content);
+
     // Build context from relevant memories
     const context = relevantMemories.length > 0
-      ? relevantMemories.map(memory => 
-          `[${memory.type.toUpperCase()}] ${memory.title}: ${memory.content}${
-            memory.tags && memory.tags.length > 0 ? ` (Tags: ${memory.tags.join(', ')})` : ''
-          }`
-        ).join('\n\n')
+      ? relevantMemories.map(memory =>
+        `[${memory.type.toUpperCase()}] ${memory.title}: ${memory.content}${memory.tags && memory.tags.length > 0 ? ` (Tags: ${memory.tags.join(', ')})` : ''
+        }`
+      ).join('\n\n')
       : '';
 
     // Generate AI response
     const response = await generateChatResponse(messages, context);
-    
+
     res.json({ message: response });
   } catch (error) {
     console.error("Error in chat:", error);

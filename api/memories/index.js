@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const userId = "demo-user";
+  const userId = "shared-user";
 
   if (req.method === 'GET') {
     try {
