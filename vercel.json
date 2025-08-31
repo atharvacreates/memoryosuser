@@ -1,8 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "vite build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "installCommand": "npm install",
   "routes": [
     {
       "src": "/api/(.*)",
@@ -10,16 +11,17 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/$1"
+      "dest": "/index.html"
     }
   ],
   "functions": {
     "api/**/*.js": {
       "runtime": "nodejs18.x",
-      "maxDuration": 10
+      "maxDuration": 30
     }
   },
   "env": {
+    "NODE_ENV": "production",
     "SUPABASE_DATABASE_URL": "@supabase_database_url",
     "OPENROUTER_API_KEY": "@openrouter_api_key"
   }
