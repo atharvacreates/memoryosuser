@@ -3,6 +3,10 @@ import { insertMemorySchema } from '../../shared/schema.js';
 import { generateEmbedding, generateRelevantTags } from '../../server/services/openai.js';
 
 export default async function handler(req, res) {
+  console.log(`[API] ${req.method} /api/memories called`);
+  console.log(`[API] Request body:`, req.body);
+  console.log(`[API] Request headers:`, req.headers);
+
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,6 +14,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
   if (req.method === 'OPTIONS') {
+    console.log(`[API] OPTIONS request handled`);
     res.status(200).end();
     return;
   }
@@ -32,10 +37,10 @@ export default async function handler(req, res) {
       }
 
       const memoryData = result.data;
-      
+
       // Generate embedding for the content
       const embedding = await generateEmbedding(`${memoryData.title} ${memoryData.content}`);
-      
+
       // Generate AI-powered tags if none provided
       if (!memoryData.tags || memoryData.tags.length === 0) {
         memoryData.tags = await generateRelevantTags(memoryData.content, memoryData.title, memoryData.type);
