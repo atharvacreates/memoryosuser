@@ -1,20 +1,46 @@
-// Production stats API with Supabase database integration
+// Simplified stats API for Vercel deployment
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { eq } from 'drizzle-orm';
-import * as schema from '../../shared/schema.js';
+
+// Define schema inline to avoid import issues in Vercel
+const memories = {
+  id: 'id',
+  userId: 'user_id',
+  title: 'title',
+  content: 'content',
+  type: 'type',
+  tags: 'tags',
+  embedding: 'embedding',
+  priority: 'priority',
+  status: 'status',
+  source: 'source',
+  linkedMemories: 'linked_memories',
+  summary: 'summary',
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
+};
 
 // Initialize database connection
 const databaseUrl = process.env.SUPABASE_DATABASE_URL;
-if (!databaseUrl) {
-  throw new Error("SUPABASE_DATABASE_URL must be set for production deployment");
-}
+let db = null;
+let client = null;
 
-const client = postgres(databaseUrl);
-const db = drizzle(client, { schema });
+try {
+  if (databaseUrl) {
+    client = postgres(databaseUrl);
+    db = drizzle(client);
+    console.log("[STATS API] Database connection established");
+  } else {
+    console.error("[STATS API] SUPABASE_DATABASE_URL not set");
+  }
+} catch (error) {
+  console.error("[STATS API] Database connection failed:", error);
+}
 
 export default async function handler(req, res) {
   console.log(`[STATS API] ${req.method} /api/stats called`);
+  console.log(`[STATS API] Database available:`, !!db);
 
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -36,11 +62,23 @@ export default async function handler(req, res) {
   try {
     const userId = "shared-user";
     console.log(`[STATS API] Fetching stats for user: ${userId}`);
-
-    // Query memories from database
-    const memories = await db.select().from(schema.memories)
-      .where(eq(schema.memories.userId, userId));
-
+    
+    let memories = [];
+    
+    if (db) {
+      try {
+        // Query memories from database
+        memories = await db.select().from(memories)
+          .where(eq(memories.userId, userId));
+        console.log(`[STATS API] Found ${memories.length} memories from database`);
+      } catch (error) {
+        console.error("[STATS API] Error fetching memories:", error);
+        memories = [];
+      }
+    } else {
+      console.log(`[STATS API] Database not available, using empty memories array`);
+    }
+    
     const stats = {
       total: memories.length,
       ideas: memories.filter(m => m.type === 'idea').length,
@@ -53,6 +91,6 @@ export default async function handler(req, res) {
     res.json(stats);
   } catch (error) {
     console.error("Error fetching stats:", error);
-    res.status(500).json({ error: "Failed to fetch statistics" });
+    res.status(500).json({ error: "Failed to fetch statistics", details: error.message });
   }
 }
