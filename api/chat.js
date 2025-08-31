@@ -1,15 +1,16 @@
-import { storage } from '../server/storage.js';
-import { chatMessageSchema } from '../shared/schema.js';
-import { generateEmbedding, generateChatResponse } from '../server/services/openai.js';
-
+// Standalone chat API for Vercel deployment
 export default async function handler(req, res) {
+  console.log(`[CHAT API] ${req.method} /api/chat called`);
+  console.log(`[CHAT API] Request body:`, req.body);
+
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
   if (req.method === 'OPTIONS') {
+    console.log(`[CHAT API] OPTIONS request handled`);
     res.status(200).end();
     return;
   }
@@ -20,34 +21,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = chatMessageSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({ error: result.error.message });
+    console.log(`[CHAT API] Processing chat message`);
+    
+    // Basic validation
+    if (!req.body.messages || !Array.isArray(req.body.messages)) {
+      return res.status(400).json({ error: "Messages array is required" });
     }
 
-    const { messages } = result.data;
-    const lastMessage = messages[messages.length - 1];
-
+    const lastMessage = req.body.messages[req.body.messages.length - 1];
     if (!lastMessage || lastMessage.role !== "user") {
       return res.status(400).json({ error: "Last message must be from user" });
     }
 
-    // Search for relevant memories using enhanced search
-    const queryEmbedding = await generateEmbedding(lastMessage.content);
-    const relevantMemories = await storage.searchMemoriesByEmbedding("shared-user", queryEmbedding, 5, lastMessage.content);
-
-    // Build context from relevant memories
-    const context = relevantMemories.length > 0
-      ? relevantMemories.map(memory =>
-        `[${memory.type.toUpperCase()}] ${memory.title}: ${memory.content}${memory.tags && memory.tags.length > 0 ? ` (Tags: ${memory.tags.join(', ')})` : ''
-        }`
-      ).join('\n\n')
-      : '';
-
-    // Generate AI response
-    const response = await generateChatResponse(messages, context);
-
-    res.json({ message: response });
+    // For now, return a simple response - we'll implement AI later
+    const response = `Hello! I received your message: "${lastMessage.content}". This is a test response from the chat API. In the full version, I would use AI to provide intelligent responses based on your memories.`;
+    
+    console.log(`[CHAT API] Chat response generated successfully`);
+    res.json({ 
+      message: response,
+      relevantMemories: [],
+      success: true
+    });
   } catch (error) {
     console.error("Error in chat:", error);
     res.status(500).json({ error: "Failed to process chat message" });
