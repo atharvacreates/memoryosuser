@@ -7,7 +7,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/api/[...path]"
     },
     {
       "src": "/(.*)",
@@ -15,7 +15,7 @@
     }
   ],
   "functions": {
-    "api/**/*.js": {
+    "api/[...path].js": {
       "runtime": "nodejs18.x",
       "maxDuration": 30
     }
