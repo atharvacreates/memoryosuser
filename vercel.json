@@ -4,11 +4,7 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "installCommand": "npm install",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node@18"
-    }
-  },
+
   "routes": [
     {
       "src": "/api/(.*)",
