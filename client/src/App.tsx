@@ -1,14 +1,14 @@
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Demo from "@/pages/demo";
+import Home from "@/pages/home";
 
 function App() {
   return (
     <TooltipProvider>
       <Toaster />
       <Switch>
-        <Route path="/" component={Demo} />
+        <Route path="/" component={Home} />
       </Switch>
     </TooltipProvider>
   );

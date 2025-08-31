@@ -475,23 +475,12 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use MemStorage for demo mode, DatabaseStorage for production
-const isDemoMode = process.env.DEMO_MODE === 'true';
-
-console.log("DEMO_MODE:", process.env.DEMO_MODE);
+// Always use DatabaseStorage for production deployment
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("SUPABASE_DATABASE_URL:", process.env.SUPABASE_DATABASE_URL ? "SET" : "NOT SET");
-console.log("isDemoMode:", isDemoMode);
 
-// Initialize storage based on mode
-let storageInstance: IStorage;
-
-if (isDemoMode) {
-  console.log("Initializing MemStorage for demo mode");
-  storageInstance = new MemStorage();
-} else {
-  console.log("Initializing DatabaseStorage for production mode");
-  storageInstance = new DatabaseStorage();
-}
+// Initialize storage - always use DatabaseStorage for production
+console.log("Initializing DatabaseStorage for production mode");
+const storageInstance: IStorage = new DatabaseStorage();
 
 export const storage = storageInstance;

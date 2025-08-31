@@ -138,8 +138,8 @@ export default function Sidebar({ onAddMemory, onFilterChange, selectedFilter = 
             <span className="text-white text-sm font-medium">U</span>
           </div>
           <div className="ml-3 flex-1">
-            <p className="text-sm font-medium text-gray-700">Demo User</p>
-            <p className="text-xs text-gray-500">MVP Version</p>
+            <p className="text-sm font-medium text-gray-700">MemoryOS User</p>
+            <p className="text-xs text-gray-500">Production Version</p>
           </div>
         </div>
       </div>

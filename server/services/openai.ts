@@ -1,10 +1,7 @@
 import OpenAI from "openai";
 
-// Check if we're in demo mode
-const isDemoMode = process.env.DEMO_MODE === 'true';
-
 // Using OpenRouter API for cost-effective access to AI models
-const openai = isDemoMode ? null : new OpenAI({
+const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY || process.env.VITE_OPENROUTER_API_KEY || "your-api-key",
   defaultHeaders: {
@@ -80,7 +77,9 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     // Limit cache size to prevent memory issues
     if (embeddingCache.size > 1000) {
       const firstKey = embeddingCache.keys().next().value;
-      embeddingCache.delete(firstKey);
+      if (firstKey) {
+        embeddingCache.delete(firstKey);
+      }
     }
 
     return embedding;
@@ -134,26 +133,6 @@ export async function generateChatResponse(
   context?: string
 ): Promise<string> {
   try {
-    // In demo mode, provide a simple response without API calls
-    if (isDemoMode) {
-      const lastMessage = messages[messages.length - 1];
-      const userQuery = lastMessage.content.toLowerCase();
-
-      // Simple keyword-based responses for demo mode
-      if (userQuery.includes('hello') || userQuery.includes('hi')) {
-        return "Hello! I'm your MemoryOS AI assistant. I can help you find and organize your memories. Try asking me about specific topics or add some memories to get started!";
-      }
-
-      if (userQuery.includes('help') || userQuery.includes('what can you do')) {
-        return "I can help you:\n• Find specific information from your stored memories\n• Search across your notes, ideas, and learnings\n• Suggest related content based on your queries\n• Help organize and categorize your thoughts\n\nTry adding some memories first, then ask me questions about them!";
-      }
-
-      if (context && context.length > 0) {
-        return `I found some relevant memories for you:\n\n${context}\n\nThis is demo mode, so I'm showing you the raw memory data. In production mode, I would provide a more natural response based on this context.`;
-      }
-
-      return "I'm here to help you with your memories! Since this is demo mode, I can't access external AI services, but I can help you search through your stored memories. Try adding some memories first, then ask me about them.";
-    }
 
     const systemMessage = context
       ? `You are an AI assistant for MemoryOS, a personal knowledge management system. You help users find and organize their stored memories, thoughts, ideas, and learnings. 
