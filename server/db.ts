@@ -15,3 +15,4 @@ const client = postgres(databaseUrl);
 export const db = drizzle(client, { schema });
 
 console.log("Database connection established successfully");
+// lololol
