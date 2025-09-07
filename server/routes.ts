@@ -6,6 +6,11 @@ import { generateEmbedding, generateChatResponse, generateRelevantTags } from ".
 import { MemoryWithSimilarity } from "@shared/types";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint
+  app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok' });
+  });
+
   // Initialize shared user for all users
   let sharedUser = await storage.getUser("shared-user");
   if (!sharedUser) {
