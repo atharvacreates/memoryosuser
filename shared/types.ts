@@ -1,4 +1,4 @@
-import { memories } from './schema';
+import { memories } from './schema.js';
 import { InferModel } from 'drizzle-orm';
 
 // Base memory type from schema

@@ -1,6 +1,6 @@
-import { type User, type UpsertUser, type Memory, type InsertMemory, type ChatSession, type ChatMessage, type Search } from "@shared/schema";
-import { db } from "./db";
-import { users, memories, chatSessions, searches } from "@shared/schema";
+import { type User, type UpsertUser, type Memory, type InsertMemory, type ChatSession, type ChatMessage, type Search } from "../shared/schema.js";
+import { db } from "./db.js";
+import { users, memories, chatSessions, searches } from "../shared/schema.js";
 import { eq, desc, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
 

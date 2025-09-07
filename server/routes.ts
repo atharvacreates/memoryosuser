@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertMemorySchema, searchQuerySchema, chatMessageSchema } from "@shared/schema";
-import { generateEmbedding, generateChatResponse, generateRelevantTags } from "./services/openai";
-import { MemoryWithSimilarity } from "@shared/types";
+import { storage } from "./storage.js";
+import { insertMemorySchema, searchQuerySchema, chatMessageSchema } from "../shared/schema.js";
+import { generateEmbedding, generateChatResponse, generateRelevantTags } from "./services/openai.js";
+import { MemoryWithSimilarity } from "../shared/types.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
