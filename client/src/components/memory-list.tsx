@@ -244,14 +244,14 @@ export default function MemoryList({ selectedFilter, onMemorySelect, onAddMemory
                 </Card>
               ))}
             </div>
+          </>
         )}
-          </div>
-
         <EditMemoryModal
           open={!!editingMemory}
           onOpenChange={(open) => !open && setEditingMemory(null)}
           memory={editingMemory}
         />
       </div>
-      );
+    </div>
+  );
 }
