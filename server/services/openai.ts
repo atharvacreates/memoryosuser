@@ -199,7 +199,7 @@ RESPONSE FORMAT:
 export async function generateRelevantTags(content: string, title: string, type: string): Promise<string[]> {
   try {
     const response = await openai.chat.completions.create({
-      model: "openai/gpt-4o",
+      model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",

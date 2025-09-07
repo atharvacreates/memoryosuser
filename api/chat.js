@@ -154,7 +154,7 @@ RESPONSE FORMAT:
 
         console.log(`[CHAT API] Generating AI response with OpenRouter`);
         const aiResponse = await openai.chat.completions.create({
-          model: "openai/gpt-4o",
+          model: "llama-3.3-70b-versatile",
           messages: [
             { role: "system", content: systemMessage },
             ...req.body.messages.slice(-2).map(msg => ({
