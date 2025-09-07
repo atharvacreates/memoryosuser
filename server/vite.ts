@@ -15,7 +15,7 @@ const viteConfig = {
   plugins: [],
   root: path.resolve(__dirname, '../client'),
   build: {
-    outDir: path.resolve(__dirname, '../dist/client'),
+    outDir: path.resolve(__dirname, '../dist'),
   }
 };
 
@@ -81,13 +81,22 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
+  const distPath = path.resolve(import.meta.dirname, "..", "dist");
+  const indexPath = path.join(distPath, "index.html");
 
-  if (!fs.existsSync(distPath)) {
+  if (!fs.existsSync(indexPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,
     );
   }
+
+  // Serve static files
+  app.use(express.static(distPath));
+
+  // Serve index.html for all routes for SPA
+  app.get('*', (_req, res) => {
+    res.sendFile(indexPath);
+  });
 
   app.use(express.static(distPath));
 
