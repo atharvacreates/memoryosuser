@@ -81,10 +81,20 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "..", "dist", "client");
+  const distPath = path.resolve("/opt/render/project/src/dist/client");
   const indexPath = path.join(distPath, "index.html");
 
+  console.log('Current directory:', process.cwd());
+  console.log('Looking for dist at:', distPath);
+  console.log('Looking for index at:', indexPath);
+  console.log('Directory exists:', fs.existsSync(distPath));
+  console.log('Index exists:', fs.existsSync(indexPath));
+
   if (!fs.existsSync(indexPath)) {
+    // List contents of the parent directory to debug
+    const parentDir = path.dirname(distPath);
+    console.log('Contents of parent directory:', fs.readdirSync(parentDir));
+
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,
     );
