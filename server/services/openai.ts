@@ -2,8 +2,8 @@ import OpenAI from "openai";
 
 // Using OpenRouter API for cost-effective access to AI models
 const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY || process.env.VITE_OPENROUTER_API_KEY || "your-api-key",
+  baseURL: "https://api.groq.com/openai/v1",
+  apiKey: process.env.GROQ_API_KEY || process.env.VITE_OPENROUTER_API_KEY || "your-api-key",
   defaultHeaders: {
     "HTTP-Referer": "http://localhost:3000", // Optional: for including in OpenRouter analytics
     "X-Title": "MemoryOS", // Optional: for including in OpenRouter analytics
@@ -133,7 +133,6 @@ export async function generateChatResponse(
   context?: string
 ): Promise<string> {
   try {
-
     const systemMessage = context
       ? `You are an AI assistant for MemoryOS, a personal knowledge management system. You help users find and organize their stored memories, thoughts, ideas, and learnings. 
 
@@ -159,17 +158,19 @@ RESPONSE FORMAT:
 - Keep it friendly and helpful`
       : "You are an AI assistant for MemoryOS, a personal knowledge management system. You help users find and organize their stored memories, thoughts, ideas, and learnings. Since no relevant memories were found for this query, I can provide general information and help you create a memory about this topic. Always encourage users to save important information as memories.";
 
+    // Clean messages to only include role and content (ADDED THIS PART)
+    const cleanedMessages = messages.slice(-2).map(msg => ({
+      role: msg.role as "user" | "assistant" | "system",
+      content: msg.content
+    }));
+
     const response = await openai.chat.completions.create({
-      model: "openai/gpt-4o",
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemMessage },
-        // Only include the last 2 messages for faster processing
-        ...messages.slice(-2).map(msg => ({
-          role: msg.role as "user" | "assistant" | "system",
-          content: msg.content
-        })),
+        ...cleanedMessages, // Use cleanedMessages instead of the original
       ],
-      max_tokens: 300, // Further reduced for faster responses
+      max_tokens: 300,
       temperature: 0.7,
     });
 
@@ -188,7 +189,6 @@ RESPONSE FORMAT:
   } catch (error) {
     console.error("Error generating chat response:", error);
 
-    // If it's a credit/402 error, provide a helpful message
     if (error && typeof error === 'object' && 'code' in error && error.code === 402) {
       return "I'm currently experiencing high demand and my API credits are running low. I can still help you search through your memories and provide basic assistance. For full AI responses, you may need to upgrade your OpenRouter account or try again later.";
     }
@@ -196,7 +196,6 @@ RESPONSE FORMAT:
     throw new Error("Failed to generate chat response");
   }
 }
-
 export async function generateRelevantTags(content: string, title: string, type: string): Promise<string[]> {
   try {
     const response = await openai.chat.completions.create({
