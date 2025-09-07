@@ -8,9 +8,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "rm -rf dist && tsc -p tsconfig.server.json && vite build",
-    "start": "NODE_ENV=production node dist/server/index.js",
+    "prebuild": "rm -rf dist",
+    "build": "tsc -p tsconfig.server.json && vite build",
     "postbuild": "cp -r dist/client/* dist/ && rm -rf dist/client",
+    "start": "NODE_ENV=production node --experimental-json-modules dist/server/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push"
   },

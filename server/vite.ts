@@ -3,8 +3,21 @@ import fs from "fs";
 import path from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
-import viteConfig from "../vite.config";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { nanoid } from "nanoid";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Define base Vite config inline
+const viteConfig = {
+  plugins: [],
+  root: path.resolve(__dirname, '../client'),
+  build: {
+    outDir: path.resolve(__dirname, '../dist/client'),
+  }
+};
 
 const viteLogger = createLogger();
 
