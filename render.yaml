@@ -10,3 +10,12 @@ services:
       - key: PORT
         value: "10000"
     healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - client/**
+        - server/**
+        - shared/**
+        - package.json
+        - tsconfig*.json
+        - vite.config.ts
+    startCheckTimeout: 120

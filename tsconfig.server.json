@@ -11,6 +11,8 @@
         "allowJs": true,
         "resolveJsonModule": true,
         "baseUrl": ".",
+        "isolatedModules": true,
+        "forceConsistentCasingInFileNames": true,
         "paths": {
             "@/*": [
                 "./client/src/*"
