@@ -12,10 +12,16 @@ if (!databaseUrl) {
 
 // Create postgres client for Supabase with SSL in production
 const client = postgres(databaseUrl, {
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : false,
-  connect_timeout: 10,
-  idle_timeout: 300,
+  ssl: process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false // This allows self-signed certificates
+  } : false,
+  connect_timeout: 30,
+  idle_timeout: 600,
   max_lifetime: 3600,
+  connection: {
+    application_name: 'memoryos'
+  },
+  max: 10 // maximum number of connections
 });
 
 export const db = drizzle(client, { schema });
