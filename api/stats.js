@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import { eq } from 'drizzle-orm';
 
 // Define schema inline to avoid import issues in Vercel
-const memories = {
+const memorySchema = {
   id: 'id',
   userId: 'user_id',
   title: 'title',
@@ -62,14 +62,14 @@ export default async function handler(req, res) {
   try {
     const userId = "shared-user";
     console.log(`[STATS API] Fetching stats for user: ${userId}`);
-    
+
     let memories = [];
-    
+
     if (db) {
       try {
         // Query memories from database
-        memories = await db.select().from(memories)
-          .where(eq(memories.userId, userId));
+        memories = await db.select().from(memorySchema)
+          .where(eq(memorySchema.userId, userId));
         console.log(`[STATS API] Found ${memories.length} memories from database`);
       } catch (error) {
         console.error("[STATS API] Error fetching memories:", error);
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     } else {
       console.log(`[STATS API] Database not available, using empty memories array`);
     }
-    
+
     const stats = {
       total: memories.length,
       ideas: memories.filter(m => m.type === 'idea').length,

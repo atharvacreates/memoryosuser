@@ -104,8 +104,9 @@ export default function MemoryList({ selectedFilter, onMemorySelect, onAddMemory
       if (!response.ok) {
         throw new Error('Failed to delete memory');
       }
-      // Refetch memories
+      // Refetch memories and stats
       queryClient.invalidateQueries({ queryKey: ['/api/memories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
     } catch (error) {
       console.error('Error deleting memory:', error);
     }
