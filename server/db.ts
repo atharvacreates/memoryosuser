@@ -10,9 +10,14 @@ if (!databaseUrl) {
   );
 }
 
-// Create postgres client for Supabase
-const client = postgres(databaseUrl);
+// Create postgres client for Supabase with SSL in production
+const client = postgres(databaseUrl, {
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : false,
+  connect_timeout: 10,
+  idle_timeout: 300,
+  max_lifetime: 3600,
+});
+
 export const db = drizzle(client, { schema });
 
 console.log("Database connection established successfully");
-// lololol

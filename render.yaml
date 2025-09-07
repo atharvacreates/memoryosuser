@@ -11,9 +11,11 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: SUPABASE_DATABASE_URL
+        sync: false
       - key: DATABASE_URL
         sync: false
-      - key: OPENAI_API_KEY
+      - key: GROQ_API_KEY
         sync: false
       - key: PORT
         value: "10000"

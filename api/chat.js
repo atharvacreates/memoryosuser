@@ -84,7 +84,7 @@ export default async function handler(req, res) {
 
   try {
     console.log(`[CHAT API] Processing chat message`);
-    
+
     // Basic validation
     if (!req.body.messages || !Array.isArray(req.body.messages)) {
       return res.status(400).json({ error: "Messages array is required" });
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
     // Search for relevant memories based on the user's question
     console.log(`[CHAT API] Searching for relevant memories`);
     let memories = [];
-    
+
     if (db) {
       try {
         memories = await db.select().from(memories)
@@ -115,11 +115,10 @@ export default async function handler(req, res) {
 
     // Build context from relevant memories
     const context = memories.length > 0
-      ? memories.map(memory => 
-          `[${memory.type.toUpperCase()}] ${memory.title}: ${memory.content}${
-            memory.tags && memory.tags.length > 0 ? ` (Tags: ${memory.tags.join(', ')})` : ''
-          }`
-        ).join('\n\n')
+      ? memories.map(memory =>
+        `[${memory.type.toUpperCase()}] ${memory.title}: ${memory.content}${memory.tags && memory.tags.length > 0 ? ` (Tags: ${memory.tags.join(', ')})` : ''
+        }`
+      ).join('\n\n')
       : '';
 
     console.log(`[CHAT API] Context built with ${memories.length} memories`);
@@ -167,28 +166,28 @@ RESPONSE FORMAT:
         });
 
         const response = aiResponse.choices[0].message.content || "I apologize, but I couldn't generate a response.";
-        
+
         console.log(`[CHAT API] AI response generated successfully`);
-        res.json({ 
+        res.json({
           message: response,
           relevantMemories: memories.slice(0, 3), // Return top 3 relevant memories
           success: true
         });
       } catch (error) {
         console.error("[CHAT API] OpenAI error:", error);
-        
+
         // If it's an API credit error, provide a helpful message
         if (error && typeof error === 'object' && 'code' in error && error.code === 402) {
-          return res.status(500).json({ 
+          return res.status(500).json({
             error: "I'm currently experiencing high demand and my API credits are running low. I can still help you search through your memories and provide basic assistance. For full AI responses, you may need to upgrade your OpenRouter account or try again later.",
             success: false
           });
         }
-        
+
         // Fallback to simple response
         const fallbackResponse = `Hello! I received your message: "${lastMessage.content}". I'm experiencing some technical difficulties with my AI service right now, but I can still help you search through your memories.`;
-        
-        res.json({ 
+
+        res.json({
           message: fallbackResponse,
           relevantMemories: memories.slice(0, 3),
           success: true,
@@ -199,8 +198,8 @@ RESPONSE FORMAT:
       // Fallback when OpenAI is not available
       console.log(`[CHAT API] OpenAI not available, using fallback response`);
       const fallbackResponse = `Hello! I received your message: "${lastMessage.content}". This is a fallback response from the chat API. In the full version, I would use AI to provide intelligent responses based on your memories.`;
-      
-      res.json({ 
+
+      res.json({
         message: fallbackResponse,
         relevantMemories: memories.slice(0, 3),
         success: true,
