@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMemorySchema, searchQuerySchema, chatMessageSchema } from "@shared/schema";
 import { generateEmbedding, generateChatResponse, generateRelevantTags } from "./services/openai";
+import { MemoryWithSimilarity } from "@shared/types";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize shared user for all users
@@ -184,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await generateChatResponse(messages, context);
 
       // Only return memories that are actually relevant (high similarity score)
-      const highlyRelevantMemories = relevantMemories.filter(memory =>
+      const highlyRelevantMemories = (relevantMemories as MemoryWithSimilarity[]).filter(memory =>
         memory.similarity && memory.similarity > 0.1
       ).slice(0, 2); // Limit to 2 most relevant
 
