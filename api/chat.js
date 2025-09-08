@@ -101,10 +101,60 @@ export default async function handler(req, res) {
 
     if (db) {
       try {
-        memories = await db.select().from(memories)
-          .where(eq(memories.userId, "shared-user"))
-          .limit(10);
-        console.log(`[CHAT API] Found ${memories.length} memories from database`);
+        const query = lastMessage.content.toLowerCase();
+        const queryTerms = query.split(/\s+/);
+
+        // Fetch all memories for the user
+        const allMemories = await db.select().from(memories)
+          .where(eq(memories.userId, "shared-user"));
+
+        // Score memories based on relevance
+        const scoredMemories = allMemories.map(memory => {
+          let score = 0;
+          const memoryContent = (memory.title + " " + memory.content).toLowerCase();
+
+          // Score exact matches in title (highest weight)
+          if (memory.title.toLowerCase().includes(query)) {
+            score += 10;
+          }
+
+          // Score tag matches (high weight)
+          if (memory.tags) {
+            memory.tags.forEach(tag => {
+              if (tag.toLowerCase().includes(query)) {
+                score += 8;
+              }
+              // Check each query term against tags
+              queryTerms.forEach(term => {
+                if (tag.toLowerCase().includes(term)) {
+                  score += 5;
+                }
+              });
+            });
+          }
+
+          // Score content matches (medium weight)
+          if (memoryContent.includes(query)) {
+            score += 6;
+          }
+
+          // Score individual term matches (lower weight)
+          queryTerms.forEach(term => {
+            if (memoryContent.includes(term)) {
+              score += 3;
+            }
+          });
+
+          return { ...memory, relevanceScore: score };
+        });
+
+        // Filter memories with any relevance and sort by score
+        memories = scoredMemories
+          .filter(m => m.relevanceScore > 0)
+          .sort((a, b) => b.relevanceScore - a.relevanceScore)
+          .slice(0, 5); // Get top 5 most relevant memories
+
+        console.log(`[CHAT API] Found ${memories.length} relevant memories from database`);
       } catch (error) {
         console.error("[CHAT API] Error fetching memories:", error);
         memories = [];
@@ -113,11 +163,14 @@ export default async function handler(req, res) {
       console.log(`[CHAT API] Database not available, using empty memories array`);
     }
 
-    // Build context from relevant memories
+    // Build context from relevant memories with relevance info
     const context = memories.length > 0
       ? memories.map(memory =>
-        `[${memory.type.toUpperCase()}] ${memory.title}: ${memory.content}${memory.tags && memory.tags.length > 0 ? ` (Tags: ${memory.tags.join(', ')})` : ''
-        }`
+        `[${memory.type.toUpperCase()}] ${memory.title}
+Content: ${memory.content}
+Tags: ${memory.tags ? memory.tags.join(', ') : 'none'}
+Relevance Score: ${memory.relevanceScore}
+---`
       ).join('\n\n')
       : '';
 
@@ -135,13 +188,15 @@ User's stored memories:
 ${context}
 
 CRITICAL RULES:
-- If memories are provided, ONLY respond based on those memories
+- If memories are provided, ONLY respond based on those memories, prioritizing those with higher relevance scores
+- Focus on memories with relevance scores above 5 first
 - If NO memories are provided, you can provide general information but clearly state it's not from personal memories
 - DO NOT hallucinate or make up information
 - DO NOT copy the raw memory format (no [LEARNING], [NOTE], etc. tags)
-- DO NOT include the memory tags in your response
-- Give natural, conversational responses
-- Reference the memory title naturally in conversation
+- DO NOT include the memory tags in your response unless specifically asked about tags
+- Give natural, conversational responses that combine information from multiple relevant memories when appropriate
+- Reference memory titles naturally in conversation
+- If the user's query matches specific tags, mention that you found memories with those tags
 - Be helpful and conversational
 
 RESPONSE FORMAT:
