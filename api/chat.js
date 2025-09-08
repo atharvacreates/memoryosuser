@@ -101,8 +101,21 @@ export default async function handler(req, res) {
 
     if (db) {
       try {
-        const query = lastMessage.content.toLowerCase();
-        const queryTerms = query.split(/\s+/);
+        // Normalize the query and extract key terms
+        const query = lastMessage.content.toLowerCase().trim();
+
+        // Smart query parsing - extract potential names and key terms
+        const namePattern = /\b[A-Z][a-z]+\b/g;
+        const potentialNames = lastMessage.content.match(namePattern) || [];
+        const normalizedNames = potentialNames.map(name => name.toLowerCase());
+
+        // Split into meaningful terms, remove common words
+        const stopWords = new Set(['the', 'was', 'what', 'who', 'how', 'why', 'when', 'is', 'are', 'from', 'for', 'that', 'this', 'to', 'in', 'on', 'at', 'by']);
+        const queryTerms = query.split(/[\s,.-]+/)
+          .filter(term => term.length > 1 && !stopWords.has(term));
+
+        // Add potential names to query terms
+        queryTerms.push(...normalizedNames);
 
         // Fetch all memories for the user
         const allMemories = await db.select().from(memories)
@@ -112,41 +125,93 @@ export default async function handler(req, res) {
         const scoredMemories = allMemories.map(memory => {
           let score = 0;
           const memoryContent = (memory.title + " " + memory.content).toLowerCase();
+          const memoryTitle = memory.title.toLowerCase();
 
-          // Score exact matches in title (highest weight)
-          if (memory.title.toLowerCase().includes(query)) {
-            score += 10;
-          }
+          // Named entity matching (highest weight)
+          normalizedNames.forEach(name => {
+            if (memoryContent.includes(name)) {
+              score += 15; // High priority for name matches
+            }
+          });
 
-          // Score tag matches (high weight)
+          // Tag exact matches (very high weight)
           if (memory.tags) {
-            memory.tags.forEach(tag => {
-              if (tag.toLowerCase().includes(query)) {
-                score += 8;
+            const normalizedTags = memory.tags.map(tag => tag.toLowerCase());
+            queryTerms.forEach(term => {
+              if (normalizedTags.includes(term)) {
+                score += 12; // Exact tag match
               }
-              // Check each query term against tags
-              queryTerms.forEach(term => {
-                if (tag.toLowerCase().includes(term)) {
-                  score += 5;
+              normalizedTags.forEach(tag => {
+                if (tag.includes(term) || term.includes(tag)) {
+                  score += 8; // Partial tag match
                 }
               });
             });
           }
 
-          // Score content matches (medium weight)
-          if (memoryContent.includes(query)) {
-            score += 6;
-          }
-
-          // Score individual term matches (lower weight)
+          // Title matches (high weight)
           queryTerms.forEach(term => {
-            if (memoryContent.includes(term)) {
-              score += 3;
+            if (memoryTitle.includes(term)) {
+              score += 10;
             }
           });
 
-          return { ...memory, relevanceScore: score };
+          // Content semantic matching (medium weight)
+          queryTerms.forEach(term => {
+            // Count occurrences for term frequency
+            const termCount = (memoryContent.match(new RegExp(term, 'gi')) || []).length;
+            if (termCount > 0) {
+              score += Math.min(termCount * 2, 6); // Cap at 6 to prevent overflow
+            }
+          });
+
+          // Proximity bonus for terms appearing close together
+          if (queryTerms.length > 1) {
+            const words = memoryContent.split(/\s+/);
+            for (let i = 0; i < words.length - 1; i++) {
+              if (queryTerms.some(term => words[i].includes(term)) &&
+                queryTerms.some(term => words[i + 1].includes(term))) {
+                score += 4; // Bonus for adjacent term matches
+              }
+            }
+          }
+
+          // Recent content bonus
+          if (memory.createdAt) {
+            const daysAgo = (new Date() - new Date(memory.createdAt)) / (1000 * 60 * 60 * 24);
+            if (daysAgo < 7) {
+              score += 2; // Small bonus for recent content
+            }
+          }
+
+          // Debug information
+          const debugScoring = {
+            title: memory.title,
+            tags: memory.tags,
+            score: score,
+            matchedTerms: queryTerms.filter(term =>
+              memoryContent.includes(term.toLowerCase())
+            ),
+            hasNameMatch: normalizedNames.some(name =>
+              memoryContent.includes(name)
+            )
+          };
+
+          return {
+            ...memory,
+            relevanceScore: score,
+            debugScoring // Include debug info
+          };
         });
+
+        // Log scoring details for debugging
+        console.log('Query terms:', queryTerms);
+        console.log('Potential names:', normalizedNames);
+        console.log('Scoring details:',
+          scoredMemories
+            .filter(m => m.relevanceScore > 0)
+            .map(m => m.debugScoring)
+        );
 
         // Filter memories with any relevance and sort by score
         memories = scoredMemories
